@@ -83,14 +83,32 @@ export default function AboutCitySection() {
 
   // Обновление при изменении localStorage
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedAdvantages = localStorage.getItem("volgograd-advantages")
-      if (savedAdvantages) {
-        setAdvantages(JSON.parse(savedAdvantages))
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "volgograd-advantages") {
+        const savedAdvantages = localStorage.getItem("volgograd-advantages")
+        if (savedAdvantages) {
+          try {
+            setAdvantages(JSON.parse(savedAdvantages))
+          } catch (error) {
+            console.error("Error parsing advantages data:", error)
+          }
+        }
       }
     }
 
+    // For cross-tab communication
     window.addEventListener("storage", handleStorageChange)
+
+    // For same-tab updates
+    const savedAdvantages = localStorage.getItem("volgograd-advantages")
+    if (savedAdvantages) {
+      try {
+        setAdvantages(JSON.parse(savedAdvantages))
+      } catch (error) {
+        console.error("Error parsing advantages data:", error)
+      }
+    }
+
     return () => window.removeEventListener("storage", handleStorageChange)
   }, [])
 

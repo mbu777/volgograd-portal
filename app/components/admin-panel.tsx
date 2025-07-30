@@ -192,7 +192,11 @@ export default function AdminPanel() {
   const loadIndicators = () => {
     const saved = localStorage.getItem("volgograd-indicators")
     if (saved) {
-      setIndicators(JSON.parse(saved))
+      try {
+        setIndicators(JSON.parse(saved))
+      } catch (error) {
+        console.error("Error parsing indicators data:", error)
+      }
     } else {
       const defaultIndicators: KeyIndicator[] = [
         {
@@ -273,8 +277,11 @@ export default function AdminPanel() {
   }
 
   const saveIndicators = (data: KeyIndicator[]) => {
-    setIndicators(data)
+    setIndicators([...data])
     localStorage.setItem("volgograd-indicators", JSON.stringify(data))
+
+    // Dispatch a custom event to notify other components
+    window.dispatchEvent(new Event("storage"))
   }
 
   const saveOffers = (data: InvestmentOffer[]) => {

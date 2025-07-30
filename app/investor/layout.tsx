@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -13,46 +12,64 @@ import {
   Globe,
   User,
   Menu,
-  FileText,
-  MapPin,
-  Briefcase,
   TrendingUp,
-  HeadphonesIcon,
-  FolderOpen,
+  Shield,
+  Users,
+  Building,
+  Award,
+  Gavel,
+  BookOpen,
+  Settings,
+  Target,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const investorMenuItems = [
   {
-    href: "/investor/offers",
-    label: "Инвест-предложения",
-    icon: FileText,
+    href: "/investor/standard",
+    label: "Муниципальный инвестиционный стандарт",
+    icon: Shield,
   },
   {
-    href: "/investor/realty",
-    label: "Недвижимость и площадки",
-    icon: MapPin,
+    href: "/investor/one-stop",
+    label: "Регламент сопровождения «одного окна»",
+    icon: Settings,
   },
   {
-    href: "/investor/ppp",
-    label: "Программы / МЧП",
-    icon: Briefcase,
+    href: "/investor/krt",
+    label: "Предложения по комплексному развитию территорий (КРТ)",
+    icon: Building,
+  },
+  {
+    href: "/investor/protocols",
+    label: "Протоколы результатов конкурса",
+    icon: Award,
+  },
+  {
+    href: "/investor/guidelines",
+    label: "Методические рекомендации",
+    icon: BookOpen,
+  },
+  {
+    href: "/investor/services",
+    label: "Муниципальные услуги для инвесторов",
+    icon: Users,
+  },
+  {
+    href: "/investor/programs",
+    label: "Муниципальные программы для инвесторов",
+    icon: Target,
   },
   {
     href: "/investor/projects",
-    label: "Инвестиционные проекты",
+    label: "Реализуемые инвестиционные проекты",
     icon: TrendingUp,
   },
   {
-    href: "/investor/support",
-    label: "Сервис «Одно окно»",
-    icon: HeadphonesIcon,
-  },
-  {
-    href: "/investor/docs",
-    label: "Документы и нормативная база",
-    icon: FolderOpen,
+    href: "/investor/tenders",
+    label: "Заявки и конкурсы для инвесторов",
+    icon: Gavel,
   },
 ]
 
@@ -69,11 +86,21 @@ export default function InvestorLayout({
     return currentItem?.label || "Инвестору"
   }
 
+  const getBreadcrumbs = () => {
+    const currentItem = investorMenuItems.find((item) => item.href === pathname)
+    return [
+      { label: "Главная", href: "/" },
+      { label: "Инвестору", href: "/investor/standard" },
+      { label: currentItem?.label || "Раздел", href: pathname },
+    ]
+  }
+
   const MobileMenu = () => (
     <div className="flex flex-col space-y-2 p-4">
       {investorMenuItems.map((item) => {
         const IconComponent = item.icon
-        const isActive = pathname === item.href
+        const isActive =
+          pathname === item.href || (item.href !== "/investor/standard" && pathname?.startsWith(item.href))
 
         return (
           <Link
@@ -85,7 +112,7 @@ export default function InvestorLayout({
             }`}
           >
             <IconComponent className="w-5 h-5" />
-            <span>{item.label}</span>
+            <span className="text-sm">{item.label}</span>
           </Link>
         )
       })}
@@ -112,15 +139,19 @@ export default function InvestorLayout({
 
             {/* Breadcrumbs */}
             <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
-              <Link href="/" className="hover:text-blue-600">
-                Главная
-              </Link>
-              <span>/</span>
-              <Link href="/investor/offers" className="hover:text-blue-600">
-                Инвестору
-              </Link>
-              <span>/</span>
-              <span className="text-blue-600 font-medium">{getCurrentPageTitle()}</span>
+              {getBreadcrumbs().map((crumb, index) => (
+                <div key={crumb.href} className="flex items-center space-x-2">
+                  {index > 0 && <span>/</span>}
+                  <Link
+                    href={crumb.href}
+                    className={
+                      index === getBreadcrumbs().length - 1 ? "text-blue-600 font-medium" : "hover:text-blue-600"
+                    }
+                  >
+                    {crumb.label}
+                  </Link>
+                </div>
+              ))}
             </div>
 
             {/* Right Side Actions */}
@@ -133,7 +164,7 @@ export default function InvestorLayout({
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" className="hidden md:flex text-sm h-9">
+                <Button variant="outline" size="sm" className="hidden md:flex text-sm h-9 bg-transparent">
                   <Send className="w-4 h-4 mr-2" />
                   Подать обращение
                 </Button>
@@ -171,7 +202,8 @@ export default function InvestorLayout({
             <nav className="space-y-2">
               {investorMenuItems.map((item) => {
                 const IconComponent = item.icon
-                const isActive = pathname === item.href
+                const isActive =
+                  pathname === item.href || (item.href !== "/investor/standard" && pathname?.startsWith(item.href))
 
                 return (
                   <Link
@@ -183,8 +215,8 @@ export default function InvestorLayout({
                         : "text-gray-300 hover:text-white hover:bg-white/10"
                     }`}
                   >
-                    <IconComponent className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <IconComponent className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium text-sm">{item.label}</span>
                   </Link>
                 )
               })}

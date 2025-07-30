@@ -3,325 +3,394 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, MapPin, DollarSign, Users, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { Search, MapPin, Calendar, DollarSign, Eye, Filter } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
-const initialInvestmentProjects = [
+interface Project {
+  id: string
+  title: string
+  slug: string
+  summary: string
+  sector: string
+  tags: string[]
+  status: "PLANNED" | "IN_PROGRESS" | "COMPLETED"
+  yearStart: number
+  yearEnd?: number
+  capex?: number
+  currency?: string
+  address: string
+  coverImagePath?: string
+  isPublished: boolean
+}
+
+const mockProjects: Project[] = [
   {
-    id: 1,
+    id: "1",
     title: "Волгоград-Сити",
-    description: "Многофункциональный деловой центр в центре города",
-    status: "В работе",
-    investment: "5.2 млрд ₽",
-    location: "Центральный район",
-    completion: "2026",
-    progress: 65,
-    investor: "ГК «Развитие»",
-    jobs: 2500,
-    images: [
-      "/placeholder.svg?height=200&width=300",
-      "/placeholder.svg?height=200&width=300",
-      "/placeholder.svg?height=200&width=300",
-    ],
-    timeline: [
-      { phase: "Проектирование", status: "completed", date: "2022" },
-      { phase: "Получение разрешений", status: "completed", date: "2023" },
-      { phase: "Строительство", status: "in-progress", date: "2024-2025" },
-      { phase: "Ввод в эксплуатацию", status: "planned", date: "2026" },
-    ],
+    slug: "volgograd-city",
+    summary:
+      "Многофункциональный деловой центр в центре города с офисными помещениями, торговыми площадями и гостиничным комплексом",
+    sector: "Недвижимость",
+    tags: ["офисы", "торговля", "гостиницы"],
+    status: "IN_PROGRESS",
+    yearStart: 2022,
+    yearEnd: 2026,
+    capex: 5200000000,
+    currency: "RUB",
+    address: "Центральный район, ул. Мира, 10",
+    coverImagePath: "/placeholder.svg?height=200&width=300&text=Волгоград-Сити",
+    isPublished: true,
   },
   {
-    id: 2,
+    id: "2",
     title: "Логистический центр «Волга-Хаб»",
-    description: "Современный мультимодальный логистический комплекс",
-    status: "Завершён",
-    investment: "3.8 млрд ₽",
-    location: "Красноармейский район",
-    completion: "2023",
-    progress: 100,
-    investor: "Логистик Групп",
-    jobs: 1200,
-    images: ["/placeholder.svg?height=200&width=300", "/placeholder.svg?height=200&width=300"],
-    timeline: [
-      { phase: "Проектирование", status: "completed", date: "2020" },
-      { phase: "Получение разрешений", status: "completed", date: "2021" },
-      { phase: "Строительство", status: "completed", date: "2022-2023" },
-      { phase: "Ввод в эксплуатацию", status: "completed", date: "2023" },
-    ],
+    slug: "volga-hub",
+    summary: "Современный мультимодальный логистический комплекс с железнодорожной веткой и складскими помещениями",
+    sector: "Логистика",
+    tags: ["склады", "логистика", "транспорт"],
+    status: "COMPLETED",
+    yearStart: 2020,
+    yearEnd: 2023,
+    capex: 3800000000,
+    currency: "RUB",
+    address: "Красноармейский район, промзона",
+    coverImagePath: "/placeholder.svg?height=200&width=300&text=Волга-Хаб",
+    isPublished: true,
   },
   {
-    id: 3,
+    id: "3",
     title: "Технопарк «Инновации»",
-    description: "Центр высоких технологий и стартап-инкубатор",
-    status: "Планируется",
-    investment: "2.1 млрд ₽",
-    location: "Дзержинский район",
-    completion: "2027",
-    progress: 15,
-    investor: "Поиск инвестора",
-    jobs: 800,
-    images: ["/placeholder.svg?height=200&width=300"],
-    timeline: [
-      { phase: "Проектирование", status: "in-progress", date: "2024" },
-      { phase: "Получение разрешений", status: "planned", date: "2025" },
-      { phase: "Строительство", status: "planned", date: "2025-2026" },
-      { phase: "Ввод в эксплуатацию", status: "planned", date: "2027" },
-    ],
+    slug: "innovations-techpark",
+    summary: "Центр высоких технологий и стартап-инкубатор для развития IT и инновационных проектов",
+    sector: "IT и инновации",
+    tags: ["IT", "стартапы", "инновации", "технологии"],
+    status: "PLANNED",
+    yearStart: 2024,
+    yearEnd: 2027,
+    capex: 2100000000,
+    currency: "RUB",
+    address: "Дзержинский район, ул. Технологическая, 15",
+    coverImagePath: "/placeholder.svg?height=200&width=300&text=Технопарк",
+    isPublished: true,
+  },
+  {
+    id: "4",
+    title: "Агропромышленный комплекс «Волжский»",
+    slug: "volzhsky-agro",
+    summary: "Современный агропромышленный комплекс по переработке сельскохозяйственной продукции",
+    sector: "Сельское хозяйство",
+    tags: ["агро", "переработка", "производство"],
+    status: "IN_PROGRESS",
+    yearStart: 2023,
+    yearEnd: 2025,
+    capex: 1500000000,
+    currency: "RUB",
+    address: "Светлоярский район",
+    coverImagePath: "/placeholder.svg?height=200&width=300&text=Агрокомплекс",
+    isPublished: true,
   },
 ]
 
 export default function ProjectsPage() {
-  useEffect(() => {
-    const saved = localStorage.getItem("volgograd-projects")
-    if (saved) {
-      const loadedProjects = JSON.parse(saved)
-      setInvestmentProjects(loadedProjects)
-    }
-  }, [])
+  const [projects, setProjects] = useState<Project[]>(mockProjects)
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>(mockProjects)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sectorFilter, setSectorFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [yearFromFilter, setYearFromFilter] = useState<string>("")
+  const [yearToFilter, setYearToFilter] = useState<string>("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
 
-  const [investmentProjects, setInvestmentProjects] = useState(initialInvestmentProjects)
-  const [selectedProject, setSelectedProject] = useState(investmentProjects[0])
+  useEffect(() => {
+    let filtered = projects.filter((project) => project.isPublished)
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (project) =>
+          project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          project.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          project.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
+      )
+    }
+
+    // Sector filter
+    if (sectorFilter !== "all") {
+      filtered = filtered.filter((project) => project.sector === sectorFilter)
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((project) => project.status === statusFilter)
+    }
+
+    // Year range filter
+    if (yearFromFilter) {
+      filtered = filtered.filter((project) => project.yearStart >= Number.parseInt(yearFromFilter))
+    }
+    if (yearToFilter) {
+      filtered = filtered.filter((project) => (project.yearEnd || project.yearStart) <= Number.parseInt(yearToFilter))
+    }
+
+    setFilteredProjects(filtered)
+    setCurrentPage(1)
+  }, [projects, searchQuery, sectorFilter, statusFilter, yearFromFilter, yearToFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Завершён":
+      case "COMPLETED":
         return "bg-green-100 text-green-800"
-      case "В работе":
+      case "IN_PROGRESS":
         return "bg-yellow-100 text-yellow-800"
-      case "Планируется":
+      case "PLANNED":
         return "bg-blue-100 text-blue-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
-  const getTimelineIcon = (status: string) => {
+  const getStatusText = (status: string) => {
     switch (status) {
-      case "completed":
-        return <CheckCircle className="w-5 h-5 text-green-600" />
-      case "in-progress":
-        return <Clock className="w-5 h-5 text-yellow-600" />
-      case "planned":
-        return <AlertCircle className="w-5 h-5 text-gray-400" />
+      case "COMPLETED":
+        return "Завершён"
+      case "IN_PROGRESS":
+        return "В работе"
+      case "PLANNED":
+        return "Планируется"
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-400" />
+        return status
     }
   }
+
+  const formatCapex = (capex?: number, currency?: string) => {
+    if (!capex) return "Не указано"
+
+    if (capex >= 1000000000) {
+      return `${(capex / 1000000000).toFixed(1)} млрд ${currency === "RUB" ? "₽" : currency}`
+    } else if (capex >= 1000000) {
+      return `${(capex / 1000000).toFixed(1)} млн ${currency === "RUB" ? "₽" : currency}`
+    }
+    return `${capex.toLocaleString()} ${currency === "RUB" ? "₽" : currency}`
+  }
+
+  const getAvailableSectors = () => {
+    return [...new Set(projects.map((p) => p.sector))].sort()
+  }
+
+  const paginatedProjects = filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage)
 
   return (
     <div className="h-full overflow-hidden flex flex-col bg-white">
       {/* Page Header */}
-      <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Инвестиционные проекты</h1>
-          <p className="text-lg text-gray-600">Реализуемые и планируемые инвестиционные проекты в Волгограде</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Реализуемые инвестиционные проекты</h1>
+          <p className="text-lg text-gray-600">Каталог инвестиционных проектов города Волгограда</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex-shrink-0 p-6 border-b bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Поиск по названию, описанию или тегам..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <Select value={sectorFilter} onValueChange={setSectorFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Отрасль" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все отрасли</SelectItem>
+                  {getAvailableSectors().map((sector) => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Статус" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все статусы</SelectItem>
+                  <SelectItem value="PLANNED">Планируется</SelectItem>
+                  <SelectItem value="IN_PROGRESS">В работе</SelectItem>
+                  <SelectItem value="COMPLETED">Завершён</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="number"
+                  placeholder="От года"
+                  value={yearFromFilter}
+                  onChange={(e) => setYearFromFilter(e.target.value)}
+                  className="w-24"
+                />
+                <span className="text-gray-500">-</span>
+                <Input
+                  type="number"
+                  placeholder="До года"
+                  value={yearToFilter}
+                  onChange={(e) => setYearToFilter(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">Найдено проектов: {filteredProjects.length}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchQuery("")
+                setSectorFilter("all")
+                setStatusFilter("all")
+                setYearFromFilter("")
+                setYearToFilter("")
+              }}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Сбросить фильтры
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full flex">
-          {/* Projects List */}
-          <div className="w-1/3 border-r overflow-y-auto p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Проекты</h2>
-            <div className="space-y-4">
-              {investmentProjects.map((project) => (
-                <Card
-                  key={project.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedProject.id === project.id ? "ring-2 ring-blue-500 bg-blue-50" : ""
-                  }`}
-                  onClick={() => setSelectedProject(project)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">{project.title}</h3>
-                      <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                      <div>
-                        <span className="font-medium">Инвестиции:</span>
-                        <p>{project.investment}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Завершение:</span>
-                        <p>{project.completion}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-gray-600 mb-1">
-                        <span>Прогресс</span>
-                        <span>{project.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${project.progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto">
+          {paginatedProjects.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Проекты не найдены</h3>
+              <p className="text-gray-600">Попробуйте изменить параметры поиска или фильтры</p>
             </div>
-          </div>
-
-          {/* Project Details */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-4xl">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.title}</h1>
-                  <p className="text-lg text-gray-600">{selectedProject.description}</p>
-                </div>
-                <Badge className={getStatusColor(selectedProject.status)} size="lg">
-                  {selectedProject.status}
-                </Badge>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {paginatedProjects.map((project) => (
+                  <Card key={project.id} className="hover:shadow-lg transition-shadow duration-200">
+                    <div className="relative">
+                      {project.coverImagePath && (
+                        <div className="relative h-48 w-full">
+                          <Image
+                            src={project.coverImagePath || "/placeholder.svg"}
+                            alt={project.title}
+                            fill
+                            className="object-cover rounded-t-lg"
+                          />
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3">
+                        <Badge className={getStatusColor(project.status)}>{getStatusText(project.status)}</Badge>
+                      </div>
+                    </div>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg line-clamp-2">{project.title}</CardTitle>
+                      <p className="text-sm text-gray-600 line-clamp-3">{project.summary}</p>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{project.address}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Calendar className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span>
+                            {project.yearStart}
+                            {project.yearEnd && project.yearEnd !== project.yearStart && ` - ${project.yearEnd}`}
+                          </span>
+                        </div>
+                        {project.capex && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <DollarSign className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <span>{formatCapex(project.capex, project.currency)}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-1">
+                          {project.tags.slice(0, 3).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {project.tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{project.tags.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="pt-2">
+                          <Link href={`/investor/projects/${project.slug}`}>
+                            <Button className="w-full" size="sm">
+                              <Eye className="w-4 h-4 mr-2" />
+                              Подробнее
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
-              <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="overview">Обзор</TabsTrigger>
-                  <TabsTrigger value="timeline">Этапы</TabsTrigger>
-                  <TabsTrigger value="gallery">Галерея</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Инвестиции</p>
-                        <p className="text-lg font-bold">{selectedProject.investment}</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <MapPin className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Локация</p>
-                        <p className="text-lg font-bold">{selectedProject.location}</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <Calendar className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Завершение</p>
-                        <p className="text-lg font-bold">{selectedProject.completion}</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <Users className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Рабочие места</p>
-                        <p className="text-lg font-bold">{selectedProject.jobs}</p>
-                      </CardContent>
-                    </Card>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-8 flex justify-center">
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Предыдущая
+                    </Button>
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="w-10"
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Следующая
+                    </Button>
                   </div>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Информация о проекте</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Инвестор</h4>
-                          <p className="text-gray-600">{selectedProject.investor}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Прогресс выполнения</h4>
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-1 bg-gray-200 rounded-full h-3">
-                              <div
-                                className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
-                                style={{ width: `${selectedProject.progress}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium">{selectedProject.progress}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="timeline" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Этапы реализации проекта</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {selectedProject.timeline.map((phase, index) => (
-                          <div key={index} className="flex items-start space-x-4">
-                            <div className="flex-shrink-0">{getTimelineIcon(phase.status)}</div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-semibold text-gray-900">{phase.phase}</h4>
-                                <span className="text-sm text-gray-500">{phase.date}</span>
-                              </div>
-                              <div className="mt-1">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    phase.status === "completed"
-                                      ? "border-green-200 text-green-800"
-                                      : phase.status === "in-progress"
-                                        ? "border-yellow-200 text-yellow-800"
-                                        : "border-gray-200 text-gray-600"
-                                  }
-                                >
-                                  {phase.status === "completed"
-                                    ? "Завершено"
-                                    : phase.status === "in-progress"
-                                      ? "В работе"
-                                      : "Планируется"}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="gallery" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Фотогалерея проекта</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedProject.images.map((image, index) => (
-                          <div key={index} className="relative group">
-                            <Image
-                              src={image || "/placeholder.svg"}
-                              alt={`${selectedProject.title} - фото ${index + 1}`}
-                              width={300}
-                              height={200}
-                              className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg"></div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-
-              <div className="mt-6 flex space-x-4">
-                <Button size="lg">Связаться с инвестором</Button>
-                <Button variant="outline" size="lg">
-                  Скачать презентацию
-                </Button>
-              </div>
-            </div>
-          </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -136,6 +136,7 @@ export default function VolgogradInvestmentPortal() {
   const [currentIndicatorIndex, setCurrentIndicatorIndex] = useState(0)
   const [selectedNews, setSelectedNews] = useState<(typeof newsData)[0] | null>(null)
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false)
+  const [newsDataState, setNewsData] = useState([...newsData])
 
   useEffect(() => {
     loadNews()
@@ -145,16 +146,30 @@ export default function VolgogradInvestmentPortal() {
   const loadNews = () => {
     const saved = localStorage.getItem("volgograd-news")
     if (saved) {
-      const loadedNews = JSON.parse(saved)
-      newsData.splice(0, newsData.length, ...loadedNews)
+      try {
+        const loadedNews = JSON.parse(saved)
+        // Create a new array instead of modifying the original
+        setNewsData([...loadedNews])
+      } catch (error) {
+        console.error("Error parsing news data:", error)
+      }
     }
   }
 
   const loadIndicators = () => {
     const saved = localStorage.getItem("volgograd-indicators")
     if (saved) {
-      const loadedIndicators = JSON.parse(saved)
-      keyIndicators.splice(0, keyIndicators.length, ...loadedIndicators)
+      try {
+        const loadedIndicators = JSON.parse(saved)
+        // Create a new array instead of modifying the original
+        setNewsData((prevState) => {
+          const newState = [...prevState]
+          keyIndicators.splice(0, keyIndicators.length, ...loadedIndicators)
+          return newState
+        })
+      } catch (error) {
+        console.error("Error parsing indicators data:", error)
+      }
     }
   }
 
@@ -169,11 +184,11 @@ export default function VolgogradInvestmentPortal() {
   useEffect(() => {
     if (currentSection === "home") {
       const interval = setInterval(() => {
-        setCurrentNewsIndex((prev) => (prev + 1) % newsData.length)
+        setCurrentNewsIndex((prev) => (prev + 1) % newsDataState.length)
       }, 5000)
       return () => clearInterval(interval)
     }
-  }, [currentSection])
+  }, [currentSection, newsDataState.length])
 
   // Auto-switch indicators every 3 seconds
   useEffect(() => {
@@ -230,11 +245,11 @@ export default function VolgogradInvestmentPortal() {
   }
 
   const nextNews = () => {
-    setCurrentNewsIndex((prev) => (prev + 1) % newsData.length)
+    setCurrentNewsIndex((prev) => (prev + 1) % newsDataState.length)
   }
 
   const prevNews = () => {
-    setCurrentNewsIndex((prev) => (prev - 1 + newsData.length) % newsData.length)
+    setCurrentNewsIndex((prev) => (prev - 1 + newsDataState.length) % newsDataState.length)
   }
 
   const nextIndicator = () => {
@@ -255,8 +270,8 @@ export default function VolgogradInvestmentPortal() {
     return colors[category] || "bg-gray-100 text-gray-800"
   }
 
-  const currentNews = newsData[currentNewsIndex]
-  const otherNews = newsData.filter((_, index) => index !== currentNewsIndex).slice(0, 3)
+  const currentNews = newsDataState[currentNewsIndex]
+  const otherNews = newsDataState.filter((_, index) => index !== currentNewsIndex).slice(0, 3)
 
   return (
     <div
